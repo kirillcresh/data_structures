@@ -69,7 +69,8 @@ class TestDegree(QMainWindow):
         self.tabs.addTab(tab3, "Лабораторная 3")
 
     def power_window(self, layout: QVBoxLayout):
-        methods = ["Обычный способ", "Модуль numpy", "Рекурсивное возведение в степень", "Быстрое возведение в степень"]
+        methods = ["Обычный способ", "Модуль numpy", "Рекурсивное возведение", "Быстрое возведение в степень",
+                   "Быстрое побитовое возведение"]
         self.method_checkboxes = []
         self.input_pairs = []
 
