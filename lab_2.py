@@ -196,7 +196,7 @@ class DoublyLinkedList:
             current.next = new_node
             self.count += 1
 
-    def delete_index(self, index):
+    def delete_index(self, index):  # NOSONAR
         if index < 0 or index >= self.count:
             raise IndexError("Index out of bounds.")
 
@@ -222,3 +222,126 @@ class DoublyLinkedList:
             current.prev.next = current.next
             current.next.prev = current.prev
         self.count -= 1
+
+
+def get_add_head(type_list):
+    if type_list == "sll":
+        sll = SinglyLinkedList()
+        for i in range(10000):
+            sll.add_to_head(i)
+    elif type_list == "dll":
+        dll = DoublyLinkedList()
+        for i in range(10000):
+            dll.add_to_head(i)
+    else:
+        list_test = []
+        for i in range(10000):
+            list_test.insert(0, i)
+
+
+def get_add_tail(type_list):
+    if type_list == "sll":
+        sll = SinglyLinkedList()
+        for i in range(10000):
+            sll.add_to_tail(i)
+    elif type_list == "dll":
+        dll = DoublyLinkedList()
+        for i in range(10000):
+            dll.add_to_tail(i)
+    else:
+        list_test = []
+        for i in range(10000):
+            list_test.append(i)
+
+
+sll_test = SinglyLinkedList()
+dll_test = DoublyLinkedList()
+sll_test1 = SinglyLinkedList()
+dll_test1 = DoublyLinkedList()
+for x in range(1000):
+    sll_test.add_to_tail(x)
+    dll_test.add_to_tail(x)
+    sll_test1.add_to_tail(x)
+    dll_test1.add_to_tail(x)
+
+list_test = [i for i in range(1000)]
+list_test1 = [i for i in range(1000)]
+
+
+def test_add_index(type_list):
+    if type_list == "sll":
+        for i in range(10000):
+            sll_test.add_index(sll_test.count - 500, i)
+    elif type_list == "dll":
+        for i in range(10000):
+            dll_test.add_index(dll_test.count - 500, i)
+    else:
+        len_list = len(list_test)
+        for i in range(10000):
+            list_test.insert(len_list - 500, i)
+
+
+def test_find(type_list):
+    if type_list == "sll":
+        for i in range(1000):
+            sll_test.search(i)
+    elif type_list == "dll":
+        for i in range(1000):
+            dll_test.search(i)
+    else:
+        for i in range(1000):
+            list_test.index(i)
+
+
+def test_find_index(type_list):
+    if type_list == "sll":
+        for i in range(1000):
+            sll_test.search_index(i)
+    elif type_list == "dll":
+        for i in range(1000):
+            dll_test.search_index(i)
+    else:
+        for i in range(1000):
+            list_test[i]
+
+
+def test_delete(type_list):
+    if type_list == "sll":
+        for i in range(1000):
+            sll_test.delete(i)
+    elif type_list == "dll":
+        for i in range(1000):
+            dll_test.delete(i)
+    else:
+        for i in range(1000):
+            list_test.remove(i)
+
+
+def test_delete_index(type_list):
+    if type_list == "sll":
+        for i in range(999, 0, -1):
+            sll_test1.delete_index(i)
+    elif type_list == "dll":
+        print(dll_test1.count)
+        for i in range(999, 0, -1):
+            dll_test1.delete_index(i)
+    else:
+        for i in range(999, 0, -1):
+            list_test1.pop(i)
+
+
+def get_list_method(method, type_list):
+    if method == "Добавление в начало":
+        get_add_head(type_list)
+    if method == "Добавление в конец":
+        get_add_tail(type_list)
+    if method == "Добавление в середину":
+        test_add_index(type_list)
+    if method == "Поиск":
+        test_find(type_list)
+    if method == "Поиск по индексу":
+        test_find_index(type_list)
+    if method == "Удаление":
+        test_delete(type_list)
+    if method == "Удаление по индексу":
+        test_delete_index(type_list)
