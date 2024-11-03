@@ -221,13 +221,13 @@ class TestDegree(QMainWindow):
             "Удаление",
             "Удаление по индексу",
         ]
-        self.method_checkboxes = []
+        self.method_checkboxes_list = []
 
         method_layout = QHBoxLayout()
         for method in methods:
             checkbox = QCheckBox(method)
             method_layout.addWidget(checkbox)
-            self.method_checkboxes.append(checkbox)
+            self.method_checkboxes_list.append(checkbox)
         layout.addWidget(title)
         layout.addLayout(method_layout)
 
@@ -238,7 +238,7 @@ class TestDegree(QMainWindow):
     def test_lists(self):
         selected_methods = [
             checkbox.text()
-            for checkbox in self.method_checkboxes
+            for checkbox in self.method_checkboxes_list
             if checkbox.isChecked()
         ]
         if not selected_methods:
