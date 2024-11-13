@@ -1,4 +1,6 @@
 import time
+import timeit
+from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
@@ -19,12 +21,20 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from lab_1 import get_power_result
 from lab_2 import get_list_method
+from lab_3 import generate_long_number, divide, optimized_divide
 
 
 class TestDegree(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.init_stylesheet()
         self.initUI()
+
+    def init_stylesheet(self):
+        styles = str(Path(__file__).resolve().parent / "style.css")
+        with open(styles) as f:
+            style = f.read()
+        self.setStyleSheet(style)
 
     def initUI(self):
         self.setWindowTitle("Быстрое возведение в степень")
@@ -89,12 +99,29 @@ class TestDegree(QMainWindow):
 
         tab3 = QWidget()
         layout3 = QVBoxLayout()
-        layout3.addWidget(QLabel("Содержимое третьей вкладки"))
+        splitter_3 = QSplitter(Qt.Vertical)
+
+        upper_widget_3 = QWidget()
+        upper_layout_3 = QVBoxLayout()
+        self.divide_window(upper_layout_3)
+        upper_widget_3.setLayout(upper_layout_3)
+
+        self.lower_widget_3 = QWidget()
+        self.lower_layout_3 = QVBoxLayout()
+        self.figure_3 = plt.figure()
+        self.canvas_3 = FigureCanvas(self.figure_3)
+        self.lower_layout_3.addWidget(self.canvas_3)
+        self.lower_widget_3.setLayout(self.lower_layout_3)
+
+        splitter_3.addWidget(upper_widget_3)
+        splitter_3.addWidget(self.lower_widget_3)
+        splitter_3.setSizes([150, 350])
+        layout3.addWidget(splitter_3)
         tab3.setLayout(layout3)
 
-        self.tabs.addTab(tab1, "Лабораторная 1")
-        self.tabs.addTab(tab2, "Лабораторная 2")
-        self.tabs.addTab(tab3, "Лабораторная 3")
+        self.tabs.addTab(tab1, "Лаб 1")
+        self.tabs.addTab(tab2, "Лаб 2")
+        self.tabs.addTab(tab3, "Лаб 3")
 
     def power_window(self, layout: QVBoxLayout):
         title = QLabel()
@@ -139,6 +166,29 @@ class TestDegree(QMainWindow):
 
         test_button = QPushButton("Тест")
         test_button.clicked.connect(self.test_powers)
+        layout.addWidget(test_button)
+
+    def divide_window(self, layout: QVBoxLayout):
+        title = QLabel()
+        title.setFixedSize(550, 20)
+        title.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title.setText("Алгоритмы деления длинных чисел")
+        methods = [
+            "Классический метод",
+            "Оптимизированный метод"
+        ]
+        self.method_checkboxes_divide = []
+
+        method_layout = QHBoxLayout()
+        for method in methods:
+            checkbox = QCheckBox(method)
+            method_layout.addWidget(checkbox)
+            self.method_checkboxes_divide.append(checkbox)
+        layout.addWidget(title)
+        layout.addLayout(method_layout)
+
+        test_button = QPushButton("Тест")
+        test_button.clicked.connect(self.test_divide)
         layout.addWidget(test_button)
 
     def test_powers(self):
@@ -243,7 +293,7 @@ class TestDegree(QMainWindow):
         ]
         if not selected_methods:
             self.show_warning(
-                "Пожалуйста, выберите хотя бы один метод возведения в степень."
+                "Пожалуйста, выберите хотя бы один метод."
             )
         time_result = {"standard": {}, "sll": {}, "dll": {}}
         for method in selected_methods:
@@ -261,6 +311,33 @@ class TestDegree(QMainWindow):
                 )
         self.plot_test_results(time_result)
 
+    def test_divide(self):
+        selected_methods = [
+            checkbox.text()
+            for checkbox in self.method_checkboxes_divide
+            if checkbox.isChecked()
+        ]
+        if not selected_methods:
+            self.show_warning(
+                "Пожалуйста, выберите хотя бы один метод деления."
+            )
+        lengths = [100, 500, 1000, 3000, 5000, 7000, 10000]
+        time_result = {"classic": [], "optimized": []}
+        for method in selected_methods:
+            for length in lengths:
+                dividend = generate_long_number(length)
+                divisor = generate_long_number(length // 3)
+                start_time = timeit.default_timer()
+                if method == "Классический метод":
+                    divide(dividend, divisor)
+                    end_time = timeit.default_timer()
+                    time_result["classic"].append(end_time - start_time)
+                else:
+                    optimized_divide(dividend, divisor)
+                    end_time = timeit.default_timer()
+                    time_result["optimized"].append(end_time - start_time)
+        self.plot_test_results_divide(time_result, lengths)
+
     def plot_test_results(self, time_result):
         self.canvas_2.figure.clear()
         axes = self.canvas_2.figure.subplots(1, 3, sharey=True)
@@ -277,5 +354,21 @@ class TestDegree(QMainWindow):
             axes[idx].set_yticks(range(len(methods)))
             axes[idx].set_yticklabels(methods)
 
-        # Перерисовка холста
         self.canvas_2.draw()
+
+    def plot_test_results_divide(self, time_result, lengths):
+        print(time_result)
+        self.canvas_3.figure.clear()
+        ax = self.canvas_3.figure.add_subplot(111)
+        colors = {'classic': '#3498db', 'optimized': '#e74c3c'}
+
+        for method, times in time_result.items():
+            if times:
+                ax.plot(lengths, times, label=method.replace('_', ' ').capitalize(), color=colors.get(method, '#000'),
+                        marker="o")
+        ax.set_xlabel("Количество разрядов числа")
+        ax.set_ylabel("Время выполнения (секунды)")
+        ax.set_title("Сравнение времени выполнения методов деления длинных чисел")
+        ax.legend()
+        ax.grid(True)
+        self.canvas_3.draw()
