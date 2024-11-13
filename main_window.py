@@ -3,7 +3,7 @@ import timeit
 from pathlib import Path
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QGuiApplication
+from PyQt5.QtGui import QGuiApplication, QPen, QBrush, QColor
 from PyQt5.QtWidgets import (
     QMainWindow,
     QWidget,
@@ -15,13 +15,75 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QSplitter,
     QMessageBox,
-    QCheckBox,
+    QCheckBox, QGraphicsLineItem, QGraphicsTextItem, QGraphicsEllipseItem, QGraphicsView, QGraphicsScene,
 )
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from lab_1 import get_power_result
 from lab_2 import get_list_method
 from lab_3 import generate_long_number, divide, optimized_divide
+from lab_4 import RedBlackTree
+
+
+balanced_tree = RedBlackTree()
+balanced_data = [10, 5, 15, 2, 7, 12, 17]
+for value in balanced_data:
+    balanced_tree.insert(value)
+
+high_tree = RedBlackTree()
+high_data = [10, 20, 30, 40, 50, 60, 70, 80]
+for value in high_data:
+    high_tree.insert(value)
+
+
+class TreeWidget(QWidget):
+    def __init__(self, tree):
+        super().__init__()
+        self.tree = tree
+        self.layout = QVBoxLayout()
+
+        self.view = QGraphicsView()
+        self.scene = QGraphicsScene()
+        self.view.setScene(self.scene)
+        self.layout.addWidget(self.view)
+
+        self.setLayout(self.layout)
+        self.draw_tree()
+
+    def draw_tree(self):
+        """Отрисовка дерева."""
+        self.scene.clear()
+        if self.tree.root and self.tree.root.data is not None:
+            self._draw_node(self.tree.root, 0, 0, 400, 0)
+
+    def _draw_node(self, node, x, y, dx, depth):
+        """Рекурсивная отрисовка узла."""
+        if node.data is None:
+            return
+
+        color = QColor('red') if node.color == "R" else QColor('black')
+
+        ellipse = QGraphicsEllipseItem(x - 15, y, 30, 30)
+        ellipse.setBrush(QBrush(color))
+        ellipse.setPen(QPen(Qt.black))
+        self.scene.addItem(ellipse)
+
+        text = QGraphicsTextItem(str(node.data))
+        text.setDefaultTextColor(Qt.white if node.color == "R" else Qt.black)
+        text.setPos(x - 10, y + 5)
+        self.scene.addItem(text)
+
+        if node.left and node.left.data is not None:
+            line = QGraphicsLineItem(x, y + 15, x - dx, y + 80)
+            line.setPen(QPen(Qt.black))
+            self.scene.addItem(line)
+            self._draw_node(node.left, x - dx, y + 80, dx / 2, depth + 1)
+
+        if node.right and node.right.data is not None:
+            line = QGraphicsLineItem(x, y + 15, x + dx, y + 80)
+            line.setPen(QPen(Qt.black))
+            self.scene.addItem(line)
+            self._draw_node(node.right, x + dx, y + 80, dx / 2, depth + 1)
 
 
 class TestDegree(QMainWindow):
@@ -119,9 +181,16 @@ class TestDegree(QMainWindow):
         layout3.addWidget(splitter_3)
         tab3.setLayout(layout3)
 
+        tab4 = QWidget()
+        layout4 = QVBoxLayout(tab4)
+        tree_widget = TreeWidget(high_tree)
+        layout4.addWidget(tree_widget)
+        tab4.setLayout(layout4)
+
         self.tabs.addTab(tab1, "Лаб 1")
         self.tabs.addTab(tab2, "Лаб 2")
         self.tabs.addTab(tab3, "Лаб 3")
+        self.tabs.addTab(tab4, "Лаб 4")
 
     def power_window(self, layout: QVBoxLayout):
         title = QLabel()
