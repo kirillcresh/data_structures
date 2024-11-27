@@ -74,26 +74,16 @@ class TreeWidget(QWidget):
         """Рекурсивная отрисовка узла."""
         if node is None or node.data is None:
             return
-
-        # Цвет узла
         color = QColor('red') if node.color == "R" else QColor('black')
-
-        # Отрисовка узла
         ellipse = QGraphicsEllipseItem(x - 15, y, 30, 30)
         ellipse.setBrush(QBrush(color))
         ellipse.setPen(QPen(Qt.black))
         self.scene.addItem(ellipse)
-
-        # Настройка цвета текста
         text_color = Qt.white if node.color == "B" else Qt.black
-
-        # Текст в узле
         text = QGraphicsTextItem(str(node.data))
         text.setDefaultTextColor(text_color)
         text.setPos(x - 10, y + 5)
         self.scene.addItem(text)
-
-        # Отрисовка левого ребенка
         if node.left and node.left.data is not None:
             line = QGraphicsLineItem(x, y + 15, x - dx, y + 80)
             line.setPen(QPen(Qt.black))
@@ -101,8 +91,6 @@ class TreeWidget(QWidget):
             self._draw_node(node.left, x - dx, y + 80, dx / 2, depth + 1)
         # else:
         #     self._draw_nil_node(x - dx, y + 80)
-
-        # Отрисовка правого ребенка
         if node.right and node.right.data is not None:
             line = QGraphicsLineItem(x, y + 15, x + dx, y + 80)
             line.setPen(QPen(Qt.black))
