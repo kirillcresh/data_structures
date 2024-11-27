@@ -17,7 +17,6 @@ class RedBlackTree:
         new_node.left = self.NIL
         new_node.right = self.NIL
         self._insert(new_node)
-        # Балансировка
         self._fix_insert(new_node)
 
     def _insert(self, new_node):
@@ -108,3 +107,93 @@ class RedBlackTree:
         if key < node.data:
             return self._search_tree_helper(node.left, key)
         return self._search_tree_helper(node.right, key)
+
+    def delete(self, data):
+        node_to_delete = self.search(data)
+        if node_to_delete == self.NIL:
+            return  # Узел не найден
+
+        original_color = node_to_delete.color
+        if node_to_delete.left == self.NIL:
+            temp = node_to_delete.right
+            self._transplant(node_to_delete, node_to_delete.right)
+        elif node_to_delete.right == self.NIL:
+            temp = node_to_delete.left
+            self._transplant(node_to_delete, node_to_delete.left)
+        else:
+            successor = self._minimum(node_to_delete.right)
+            original_color = successor.color
+            temp = successor.right
+            if successor.parent == node_to_delete:
+                temp.parent = successor
+            else:
+                self._transplant(successor, successor.right)
+                successor.right = node_to_delete.right
+                successor.right.parent = successor
+            self._transplant(node_to_delete, successor)
+            successor.left = node_to_delete.left
+            successor.left.parent = successor
+            successor.color = node_to_delete.color
+
+        if original_color == "B":
+            self._fix_delete(temp)
+
+    def _transplant(self, u, v):
+        if u.parent is None:
+            self.root = v
+        elif u == u.parent.left:
+            u.parent.left = v
+        else:
+            u.parent.right = v
+        v.parent = u.parent
+
+    def _minimum(self, node):
+        while node.left != self.NIL:
+            node = node.left
+        return node
+
+    def _fix_delete(self, x):
+        while x != self.root and x.color == "B":
+            if x == x.parent.left:
+                sibling = x.parent.right
+                if sibling.color == "R":
+                    sibling.color = "B"
+                    x.parent.color = "R"
+                    self._rotate_left(x.parent)
+                    sibling = x.parent.right
+                if sibling.left.color == "B" and sibling.right.color == "B":
+                    sibling.color = "R"
+                    x = x.parent
+                else:
+                    if sibling.right.color == "B":
+                        sibling.left.color = "B"
+                        sibling.color = "R"
+                        self._rotate_right(sibling)
+                        sibling = x.parent.right
+                    sibling.color = x.parent.color
+                    x.parent.color = "B"
+                    sibling.right.color = "B"
+                    self._rotate_left(x.parent)
+                    x = self.root
+            else:
+                sibling = x.parent.left
+                if sibling.color == "R":
+                    sibling.color = "B"
+                    x.parent.color = "R"
+                    self._rotate_right(x.parent)
+                    sibling = x.parent.left
+                if sibling.right.color == "B" and sibling.left.color == "B":
+                    sibling.color = "R"
+                    x = x.parent
+                else:
+                    if sibling.left.color == "B":
+                        sibling.right.color = "B"
+                        sibling.color = "R"
+                        self._rotate_left(sibling)
+                        sibling = x.parent.left
+                    sibling.color = x.parent.color
+                    x.parent.color = "B"
+                    sibling.left.color = "B"
+                    self._rotate_right(x.parent)
+                    x = self.root
+        x.color = "B"

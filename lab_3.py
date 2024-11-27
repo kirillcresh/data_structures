@@ -40,7 +40,7 @@ def optimized_divide(dividend: str, divisor: str) -> tuple[str, str]:
         quotient.append(str(q))
 
         remainder = remainder - q * int(divisor)
-        if i < len(dividend):  # остаток
+        if i < len(dividend):
             remainder = remainder * 10 + int(dividend[i])
 
     return "".join(quotient).lstrip("0"), str(remainder)

@@ -1,21 +1,11 @@
-import time
 import timeit
 from pathlib import Path
-
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QGuiApplication, QPen, QBrush, QColor
+from PyQt5.QtGui import QGuiApplication
 from PyQt5.QtWidgets import (
     QMainWindow,
-    QWidget,
-    QVBoxLayout,
-    QLabel,
     QTabWidget,
-    QHBoxLayout,
-    QLineEdit,
-    QPushButton,
     QSplitter,
-    QMessageBox,
-    QCheckBox, QGraphicsLineItem, QGraphicsTextItem, QGraphicsEllipseItem, QGraphicsView, QGraphicsScene,
+    QCheckBox
 )
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -23,23 +13,23 @@ from lab_1 import get_power_result
 from lab_2 import get_list_method
 from lab_3 import generate_long_number, divide, optimized_divide
 from lab_4 import RedBlackTree
+import time
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QMessageBox, QGraphicsView, QGraphicsScene,
+    QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem
+)
+from PyQt5.QtGui import QBrush, QPen, QColor
+from PyQt5.QtCore import Qt
 
-
-balanced_tree = RedBlackTree()
-balanced_data = [10, 5, 15, 2, 7, 12, 17]
-for value in balanced_data:
-    balanced_tree.insert(value)
 
 high_tree = RedBlackTree()
-high_data = [10, 20, 30, 40, 50, 60, 70, 80]
-for value in high_data:
-    high_tree.insert(value)
 
 
 class TreeWidget(QWidget):
     def __init__(self, tree):
         super().__init__()
         self.tree = tree
+
         self.layout = QVBoxLayout()
 
         self.view = QGraphicsView()
@@ -47,43 +37,140 @@ class TreeWidget(QWidget):
         self.view.setScene(self.scene)
         self.layout.addWidget(self.view)
 
+        self.control_panel = QHBoxLayout()
+
+        self.input_label = QLabel("Значение:")
+        self.input_field = QLineEdit()
+        self.control_panel.addWidget(self.input_label)
+        self.control_panel.addWidget(self.input_field)
+
+        self.add_button = QPushButton("Добавить")
+        self.find_button = QPushButton("Найти")
+        self.delete_button = QPushButton("Удалить")
+
+        self.control_panel.addWidget(self.add_button)
+        self.control_panel.addWidget(self.find_button)
+        self.control_panel.addWidget(self.delete_button)
+
+        self.time_label = QLabel("Время выполнения: ---")
+        self.control_panel.addWidget(self.time_label)
+
+        self.layout.addLayout(self.control_panel)
         self.setLayout(self.layout)
+
+        self.add_button.clicked.connect(self.add_node)
+        self.find_button.clicked.connect(self.find_node)
+        self.delete_button.clicked.connect(self.delete_node)
+
         self.draw_tree()
 
     def draw_tree(self):
         """Отрисовка дерева."""
         self.scene.clear()
         if self.tree.root and self.tree.root.data is not None:
-            self._draw_node(self.tree.root, 0, 0, 400, 0)
+            self._draw_node(self.tree.root, 400, 0, 200, 0)
 
     def _draw_node(self, node, x, y, dx, depth):
         """Рекурсивная отрисовка узла."""
-        if node.data is None:
+        if node is None or node.data is None:
             return
 
+        # Цвет узла
         color = QColor('red') if node.color == "R" else QColor('black')
 
+        # Отрисовка узла
         ellipse = QGraphicsEllipseItem(x - 15, y, 30, 30)
         ellipse.setBrush(QBrush(color))
         ellipse.setPen(QPen(Qt.black))
         self.scene.addItem(ellipse)
 
+        # Настройка цвета текста
+        text_color = Qt.white if node.color == "B" else Qt.black
+
+        # Текст в узле
         text = QGraphicsTextItem(str(node.data))
-        text.setDefaultTextColor(Qt.white if node.color == "R" else Qt.black)
+        text.setDefaultTextColor(text_color)
         text.setPos(x - 10, y + 5)
         self.scene.addItem(text)
 
+        # Отрисовка левого ребенка
         if node.left and node.left.data is not None:
             line = QGraphicsLineItem(x, y + 15, x - dx, y + 80)
             line.setPen(QPen(Qt.black))
             self.scene.addItem(line)
             self._draw_node(node.left, x - dx, y + 80, dx / 2, depth + 1)
+        # else:
+        #     self._draw_nil_node(x - dx, y + 80)
 
+        # Отрисовка правого ребенка
         if node.right and node.right.data is not None:
             line = QGraphicsLineItem(x, y + 15, x + dx, y + 80)
             line.setPen(QPen(Qt.black))
             self.scene.addItem(line)
             self._draw_node(node.right, x + dx, y + 80, dx / 2, depth + 1)
+        # else:
+        #     self._draw_nil_node(x + dx, y + 80)
+
+    def _draw_nil_node(self, x, y):
+        """Отрисовка NIL узла."""
+        color = QColor('gray')
+        ellipse = QGraphicsEllipseItem(x - 15, y, 30, 30)
+        ellipse.setBrush(QBrush(color))
+        ellipse.setPen(QPen(Qt.black))
+        self.scene.addItem(ellipse)
+
+        text = QGraphicsTextItem("NIL")
+        text.setDefaultTextColor(Qt.black)
+        text.setPos(x - 10, y + 5)
+        self.scene.addItem(text)
+
+    def add_node(self):
+        """Добавление узла."""
+        start_time = time.time()
+        value = self._get_input_value()
+        if value is not None:
+            self.tree.insert(value)
+            self.draw_tree()
+        self._update_time_label(start_time)
+
+    def find_node(self):
+        """Поиск узла."""
+        start_time = time.time()
+        value = self._get_input_value()
+        if value is not None:
+            node = self.tree.search(value)
+            if node == self.tree.NIL:
+                self._show_message("Поиск", f"Узел со значением {value} не найден.")
+            else:
+                self._show_message("Поиск", f"Узел со значением {value} найден.")
+        self._update_time_label(start_time)
+
+    def delete_node(self):
+        """Удаление узла."""
+        start_time = time.time()
+        value = self._get_input_value()
+        if value is not None:
+            self.tree.delete(value)
+            self.draw_tree()
+        self._update_time_label(start_time)
+
+    def _update_time_label(self, start_time):
+        """Обновить метку времени выполнения."""
+        elapsed_time = time.time() - start_time
+        self.time_label.setText(f"Время выполнения: {elapsed_time:.6f} секунд")
+
+    def _get_input_value(self):
+        """Получить числовое значение из поля ввода."""
+        try:
+            value = int(self.input_field.text())
+            return value
+        except ValueError:
+            self._show_message("Ошибка", "Введите корректное числовое значение.")
+            return None
+
+    def _show_message(self, title, message):
+        """Показать сообщение пользователю."""
+        QMessageBox.information(self, title, message)
 
 
 class TestDegree(QMainWindow):
@@ -426,7 +513,6 @@ class TestDegree(QMainWindow):
         self.canvas_2.draw()
 
     def plot_test_results_divide(self, time_result, lengths):
-        print(time_result)
         self.canvas_3.figure.clear()
         ax = self.canvas_3.figure.add_subplot(111)
         colors = {'classic': '#3498db', 'optimized': '#e74c3c'}

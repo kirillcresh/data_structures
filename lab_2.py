@@ -235,7 +235,7 @@ def get_add_head(type_list):
             dll.add_to_head(i)
     else:
         list_test = []
-        for i in range(10000):
+        for i in range(15000):
             list_test.insert(0, i)
 
 
@@ -250,7 +250,7 @@ def get_add_tail(type_list):
             dll.add_to_tail(i)
     else:
         list_test = []
-        for i in range(10000):
+        for i in range(15000):
             list_test.append(i)
 
 
@@ -277,7 +277,7 @@ def test_add_index(type_list):
             dll_test.add_index(dll_test.count - 500, i)
     else:
         len_list = len(list_test)
-        for i in range(10000):
+        for i in range(15000):
             list_test.insert(len_list - 500, i)
 
 
@@ -289,7 +289,7 @@ def test_find(type_list):
         for i in range(1000):
             dll_test.search(i)
     else:
-        for i in range(1000):
+        for i in range(2000):
             list_test.index(i)
 
 
@@ -301,7 +301,7 @@ def test_find_index(type_list):
         for i in range(1000):
             dll_test.search_index(i)
     else:
-        for i in range(1000):
+        for i in range(2000):
             list_test[i]
 
 
@@ -313,7 +313,7 @@ def test_delete(type_list):
         for i in range(1000):
             dll_test.delete(i)
     else:
-        for i in range(1000):
+        for i in range(2000):
             list_test.remove(i)
 
 
@@ -322,7 +322,6 @@ def test_delete_index(type_list):
         for i in range(999, 0, -1):
             sll_test1.delete_index(i)
     elif type_list == "dll":
-        print(dll_test1.count)
         for i in range(999, 0, -1):
             dll_test1.delete_index(i)
     else:
